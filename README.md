@@ -1,7 +1,5 @@
 # @xrpl-dex — Open Source XRPL DEX Toolkit
 
-**The first production-grade open source DEX for the XRP Ledger.**
-
 > Swap tokens, read order books, estimate trades, and build transactions — all from a single SDK. No smart contracts. No indexers. Just the native XRPL DEX, wrapped in a clean API.
 
 ```bash
@@ -29,7 +27,7 @@ But there's no good open source toolkit for building on it. Every XRPL DEX proje
 | `@xrpl-dex/core` | **Available** | Order book, swap estimation, transaction building, token registry |
 | `@xrpl-dex/react` | **Available** | React hooks (`useOrderBook`, `useSwap`) |
 | `@xrpl-dex/wallets` | **Available** | Wallet adapters (Xaman, Crossmark, GemWallet, SoundBip) |
-| `@xrpl-dex/widget` | **Coming Soon** | Embeddable React swap + order book component with theming |
+| `@xrpl-dex/widget` | **Available** | Embeddable React swap + order book component with theming |
 | `@xrpl-dex/themes` | **Available** | 4 pre-built themes (dark, light, midnight, emerald) + white-label |
 
 ---
@@ -329,16 +327,19 @@ CSS custom properties applied: `--dex-color-primary`, `--dex-color-positive`, et
 ## Roadmap
 
 - [x] Core SDK (order book, swap, tokens, estimation)
-- [x] React hooks (useOrderBook, useSwap)
+- [x] React hooks (useOrderBook, useSwap, useOrderBookWs, useKeyboardShortcuts, useFavouritePairs)
 - [x] 4 wallet adapters (Xaman, Crossmark, GemWallet, SoundBip)
-- [x] Theme system with 4 presets
-- [ ] `<XrplDex />` embeddable widget component
-- [ ] Order book depth visualisation
-- [ ] Price charts (lightweight-charts)
-- [ ] WebSocket live order book (XRPL `subscribe`)
-- [ ] Token verification badges
-- [ ] Recent trades stream
-- [ ] Limit order management UI
+- [x] Theme system with 4 presets + white-label
+- [x] `<XrplDex />` embeddable widget component
+- [x] Order book depth visualisation (cumulative depth bars, stacked layout, click-to-fill)
+- [x] Price charts (lightweight-charts candlestick + volume, 6 timeframes)
+- [x] WebSocket live order book (XRPL `subscribe`)
+- [x] Token verification badges (verified issuer allowlist)
+- [x] Recent trades stream (flash animation, relative size bars, 10s polling)
+- [x] Limit order management UI (open orders, cancel via OfferCancel)
+- [x] Swap panel (quick amount buttons, slippage, trust line detection, transaction preview)
+- [x] Keyboard shortcuts (F flip, Enter swap, M max, Esc clear)
+- [x] Favourite pairs (localStorage-persisted)
 - [ ] npm publish
 
 ---
