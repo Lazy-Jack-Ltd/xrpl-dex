@@ -1,5 +1,11 @@
 # @xrpl-dex — Institutional-Grade Open Source DEX for the XRP Ledger
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Security: Audited](https://img.shields.io/badge/Security-3x_Audited-brightgreen.svg)](#security)
+[![Chains: 100+](https://img.shields.io/badge/Chains-100+-purple.svg)](#cross-chain-providers)
+[![Wallets: 4](https://img.shields.io/badge/Wallets-4-orange.svg)](#wallets)
+[![Themes: White--label](https://img.shields.io/badge/Themes-White--label-teal.svg)](#theming)
+
 > Trade any XRPL token. Cross-chain to ETH, BTC, Lightning, and 100+ chains. Embeddable widget or headless SDK. White-label in 15 minutes.
 
 ```bash
@@ -8,11 +14,36 @@ npm install @xrpl-dex/core
 
 ---
 
+## Table of Contents
+
+- [What This Is](#what-this-is)
+- [Feature Overview](#feature-overview)
+- [Security](#security)
+- [Quick Start](#quick-start)
+- [Widget Props](#widget-props)
+- [Components](#components)
+- [React Hooks](#react-hooks)
+- [Wallets](#wallets)
+- [Cross-Chain Providers](#cross-chain-providers)
+- [Theming](#theming)
+- [OHLC Backend](#ohlc-backend)
+- [Environment Variables](#environment-variables)
+- [Source Map](#source-map)
+- [B2B / Institutional](#b2b--institutional)
+- [Architecture](#architecture)
+- [Compatibility](#compatibility)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
 ## What This Is
 
 A complete, security-audited DEX toolkit built on the XRP Ledger's native on-chain exchange. No smart contracts. No bridges for same-chain swaps. No indexer — the ledger IS the order book.
 
-Built for B2B institutional deployment. Ships with a full React widget, or use the headless SDK to build your own UI.
+Built for B2B institutional deployment. Ships with a full React widget (~55KB gzipped), or use the headless SDK to build your own UI.
 
 ---
 
@@ -352,6 +383,118 @@ Cross-Chain
 ├── FixedFloat ───────────── BTC Lightning
 └── Custom provider ─────── institutional adapter
 ```
+
+---
+
+## Environment Variables
+
+Required for the optional backend service (`onthedex-proxy.cjs`):
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `REDIS_HOST` | No | 127.0.0.1 | Redis server host |
+| `REDIS_PORT` | No | 6379 | Redis server port |
+| `REDIS_PASSWORD` | Production | - | Redis authentication password |
+| `FIXEDFLOAT_API_KEY` | For Lightning | - | FixedFloat API key (server-side only) |
+| `FIXEDFLOAT_API_SECRET` | For Lightning | - | FixedFloat HMAC secret (server-side only) |
+
+The widget itself requires no environment variables. All configuration is via props.
+
+---
+
+## Source Map
+
+```
+packages/xrpl-dex/
+├── src/
+│   ├── core/
+│   │   ├── tokens.js          # Token definitions, validation, fetchWithTimeout
+│   │   ├── orderbook.js       # Order book fetch, swap estimation, AMM pool info
+│   │   ├── swap.js            # Transaction builders (OfferCreate, TrustSet)
+│   │   ├── wallet.js          # Wallet balance + trust line queries
+│   │   ├── crosschain.js      # Cross-chain providers (Squid, Lightning, Custom)
+│   │   └── logger.js          # Configurable logger (silent default)
+│   ├── hooks/
+│   │   ├── useOrderBook.js    # Polling-based order book
+│   │   ├── useOrderBookWs.js  # WebSocket order book + fallback
+│   │   ├── useSwap.js         # Swap state + estimation + tx building
+│   │   ├── useCrossChainSwap.js # Cross-chain swap state + audit trail
+│   │   ├── usePriceAlerts.js  # Price alerts + browser notifications
+│   │   ├── useKeyboardShortcuts.js # F, Enter, M, Esc
+│   │   └── useFavouritePairs.js # localStorage favourites
+│   ├── wallets/
+│   │   └── index.js           # Xaman, Crossmark, GemWallet, SoundBip adapters
+│   ├── themes/
+│   │   └── index.js           # 4 presets + applyTheme()
+│   └── components/
+│       ├── XrplDex.jsx        # Main widget (composes all components)
+│       ├── SwapPanel.jsx      # Market + Limit + Cross-Chain tabs
+│       ├── CrossChainPanel.jsx # Chain/token selector, audit trail
+│       ├── OrderBookTable.jsx  # Side-by-side order book
+│       ├── PriceChart.jsx     # Candlestick chart + indicators + drawings
+│       ├── RecentTrades.jsx   # WebSocket live trade feed
+│       ├── TradeHistory.jsx   # User's executed trades + CSV
+│       ├── OpenOrders.jsx     # Open limit orders + cancel
+│       ├── PairHeader.jsx     # 24h change, search, alerts, favourites
+│       ├── TokenPicker.jsx    # Token search modal
+│       ├── TransactionPreview.jsx # Confirmation modal
+│       ├── ErrorBoundary.jsx  # Error boundary with retry
+│       ├── XrplDex.css        # All styles (CSS custom properties)
+│       └── index.js           # Public exports
+
+functions/
+└── onthedex-proxy.cjs         # OHLC backend + Lightning proxy + rate limiting
+```
+
+---
+
+## Compatibility
+
+| Environment | Support |
+|------------|---------|
+| **React** | 18+ |
+| **Node.js** | 18+ (backend only) |
+| **Browsers** | Chrome 90+, Firefox 90+, Safari 15+, Edge 90+ |
+| **Mobile** | iOS Safari 15+, Chrome Android 90+ |
+| **SSR** | Not supported (browser-only widget) |
+| **TypeScript** | JSDoc typed (no .d.ts yet) |
+| **Bundle size** | ~55KB gzipped (widget), ~8KB gzipped (core SDK only) |
+
+---
+
+## Troubleshooting
+
+**Order book shows empty / "Loading..."**
+- Check your XRPL endpoint is reachable. Default is `/api/xrpl-rpc` which requires a Vite proxy or backend.
+- For direct access: pass `xrplEndpoint="https://xrplcluster.com"` (may hit CORS in browser).
+
+**Chart shows "No chart data"**
+- The chart uses xrpl.to OHLC API. Some new or low-volume tokens have no chart data.
+- If using the OHLC backend, the first request seeds data — refresh after a few seconds.
+
+**"Crossmark wallet not detected"**
+- Crossmark browser extension must be installed and enabled on the current page.
+- The widget checks `typeof window !== 'undefined' && window.crossmark`.
+
+**Cross-chain swap stuck on "Processing"**
+- Cross-chain swaps take 5-30 minutes depending on the destination chain.
+- Check the Axelar transaction hash on [axelarscan.io](https://axelarscan.io) for status.
+- If stuck >30 minutes, the swap may have been refunded to your XRPL address.
+
+**"Quote has expired" error**
+- Quotes are valid for 30 seconds (60 for Lightning). Click "Get Quote" again.
+
+**Trust line error on swap**
+- Some tokens require a trust line before you can hold them. The widget handles this automatically.
+- If it fails, check you have at least 2 XRP available for the reserve.
+
+**Lightning invoice rejected**
+- Invoices must start with `lnbc` (mainnet) or `lntb` (testnet).
+- Ensure the invoice hasn't expired.
+
+**OHLC backend not responding**
+- Check Redis is running and `REDIS_PASSWORD` is set correctly.
+- The widget falls back to direct xrpl.to — charting still works without the backend.
 
 ---
 
