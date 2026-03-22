@@ -1,4 +1,4 @@
-# @xrpl-dex — Institutional-Grade Open Source DEX for the XRP Ledger
+# @xrpl-dex — Open Source DEX Toolkit for the XRP Ledger
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Security: Audited](https://img.shields.io/badge/Security-3x_Audited-brightgreen.svg)](#security)
@@ -29,7 +29,6 @@ npm install @xrpl-dex/core
 - [OHLC Backend](#ohlc-backend)
 - [Environment Variables](#environment-variables)
 - [Source Map](#source-map)
-- [B2B / Institutional](#b2b--institutional)
 - [Architecture](#architecture)
 - [Compatibility](#compatibility)
 - [Troubleshooting](#troubleshooting)
@@ -43,7 +42,7 @@ npm install @xrpl-dex/core
 
 A complete, security-audited DEX toolkit built on the XRP Ledger's native on-chain exchange. No smart contracts. No bridges for same-chain swaps. No indexer — the ledger IS the order book.
 
-Built for B2B institutional deployment. Ships with a full React widget (~55KB gzipped), or use the headless SDK to build your own UI.
+Ships with a full React widget (~55KB gzipped), or use the headless SDK to build your own UI.
 
 ---
 
@@ -93,11 +92,11 @@ Built for B2B institutional deployment. Ships with a full React widget (~55KB gz
 
 ### Portfolio
 - Trade history — user's own executed trades via `account_tx`
-- Pagination, CSV export for compliance
+- Pagination, CSV export
 - Open orders — view and cancel via OfferCancel
 - Price alerts with browser notifications
 
-### Cross-Chain (Institutional Provider Abstraction)
+### Cross-Chain
 
 ```
 XRP  -->  Ethereum (ETH, USDC, USDT, DAI)
@@ -108,7 +107,7 @@ XRP  -->  Ethereum (ETH, USDC, USDT, DAI)
 
 - **Default provider**: Squid Router (9 audits, $6B+ volume, zero exploits, Ripple-endorsed)
 - **Lightning provider**: FixedFloat (non-custodial, API keys server-side only)
-- **Custom provider**: inject Fireblocks, internal OTC, or any system implementing the interface
+- **Custom provider**: plug in any provider implementing the interface
 - **Full audit trail**: XRPL tx hash + Axelar bridge tx hash + destination chain tx hash
 - Quote expiry enforcement with countdown
 - Destination address validation per chain type (EVM, BTC, Lightning invoice, Solana)
@@ -223,8 +222,7 @@ addAlert(2.50, 'above'); // Browser notification when price crosses 2.50
 | `walletConfig` | object | {} | Wallet-specific (soundbipSdk, xamanEndpoint) |
 | `crossChainProvider` | object | Squid | Cross-chain swap provider |
 | `onConnectWallet` | function | - | Trigger wallet connection UI |
-| `onBeforeSwap` | function | - | Compliance hook (KYC/AML check) |
-| `requireCompliance` | boolean | false | Block swaps without compliance |
+| `onBeforeSwap` | function | - | Optional pre-swap hook (e.g. custom validation) |
 | `onSwapComplete` | function | - | Called with txHash on success |
 | `xrplEndpoint` | string | /api/xrpl-rpc | XRPL JSON-RPC endpoint |
 | `liveUpdates` | boolean | true | WebSocket order book |
@@ -285,13 +283,13 @@ All return `{ success, txHash }` or `{ pending, uuid/qrUrl/deepLink }`.
 |----------|--------|------------|----------|
 | **Squid Router** (default) | 100+ (ETH, BTC, SOL, etc.) | 9 audits, $6B+ volume | Production default |
 | **FixedFloat Lightning** | BTC Lightning | Non-custodial, 0.5% fee | Lightning payments |
-| **Custom** | Any | Your choice | Fireblocks, OTC, internal |
+| **Custom** | Any | Your choice | Build your own adapter |
 
 ```jsx
-// Institutional: inject your own provider
+// Custom provider
 <XrplDex crossChainProvider={createCustomProvider({
-  getQuote: async (params) => myOtcDesk.quote(params),
-  getStatus: async (hash) => myOtcDesk.status(hash),
+  getQuote: async (params) => myProvider.quote(params),
+  getStatus: async (hash) => myProvider.status(hash),
   getSupportedChains: async () => [...],
   getSupportedTokens: async (chain) => [...],
 })} />
@@ -327,7 +325,7 @@ All components use `--dex-color-*` CSS custom properties. Zero hardcoded colours
 
 ## OHLC Backend
 
-Optional Redis-backed service for institutional-grade charting:
+Optional Redis-backed service for advanced charting:
 
 - Continuously collects 5m candles for active tokens
 - Each resolution stored separately (no mixing coarse/fine data)
@@ -337,21 +335,6 @@ Optional Redis-backed service for institutional-grade charting:
 - Rate limited, slug validated, CSRF protected
 
 Widget falls back to direct xrpl.to if backend unavailable.
-
----
-
-## B2B / Institutional
-
-| Capability | How |
-|-----------|-----|
-| **Compliance** | `onBeforeSwap` hook for KYC/AML. `requireCompliance={true}` blocks swaps without it. |
-| **Audit trail** | Trade history CSV. Cross-chain: XRPL + Axelar + destination tx hashes. |
-| **Logging** | `setLogger()` — inject Sentry, Datadog, or custom. Silent by default. |
-| **Custom providers** | Inject Fireblocks, internal OTC, or any system via provider interface. |
-| **White-label** | Full reskin in one config object. 15-minute deployment. |
-| **Accessibility** | WCAG 2.1 AA — aria labels, roles, keyboard navigation. |
-| **Error recovery** | Error boundary with retry. All async polling wrapped in try-catch. |
-| **Data freshness** | Staleness warning when order book data > 30s old. |
 
 ---
 
@@ -381,7 +364,7 @@ XRPL (native protocol)
 Cross-Chain
 ├── Squid Router (Axelar) ── 100+ chains, 9 audits
 ├── FixedFloat ───────────── BTC Lightning
-└── Custom provider ─────── institutional adapter
+└── Custom provider ─────── your own adapter
 ```
 
 ---
@@ -519,9 +502,9 @@ Everything below is shipped:
 - [x] Favourite pairs
 - [x] Cross-chain swaps (Squid Router — ETH, BTC, SOL, 100+ chains)
 - [x] Bitcoin Lightning (FixedFloat — one-step, non-custodial)
-- [x] Cross-chain provider abstraction (custom/institutional)
+- [x] Cross-chain provider abstraction (pluggable)
 - [x] Full audit trail (XRPL + Axelar + destination tx hashes)
-- [x] Error boundary, configurable logger, compliance mode
+- [x] Error boundary, configurable logger
 - [x] Input/address/amount validation + XSS prevention
 - [x] Security audit (3 rounds, 22 fixes, 0 critical remaining)
 - [x] Redis OHLC backend (continuous collection, resolution-tagged, aggregation)
